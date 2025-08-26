@@ -10,7 +10,9 @@ typedef struct {
     int x;
     int y;
 } MousePos;
+
 MousePos mpos = {0, 0};
+MousePos prevmpos = {0, 0};
 bool draw = false;
 bool clear = false;
 
@@ -55,6 +57,8 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event)
       draw = false;
     }
     else if(event->type == SDL_EVENT_MOUSE_MOTION){
+      prevmpos.x = mpos.x;
+      prevmpos.y = mpos.y;
       mpos.x = event->motion.x;
       mpos.y = event->motion.y;
     }
@@ -71,7 +75,7 @@ SDL_AppResult SDL_AppIterate(void *appstate)
     }
     if(draw){
       SDL_SetRenderDrawColor(renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
-      SDL_RenderPoint(renderer, mpos.x, mpos.y);
+      SDL_RenderLine(renderer, prevmpos.x, prevmpos.y, mpos.x, mpos.y);
     }
     SDL_SetRenderTarget(renderer, NULL);
     SDL_SetRenderDrawColor(renderer, 255, 255, 255, SDL_ALPHA_OPAQUE);
