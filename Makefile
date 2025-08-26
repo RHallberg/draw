@@ -9,7 +9,7 @@ ifeq ($(UNAME_S),Darwin)
 	LDFLAGS = -I/usr/local/include/SDL3 -L/usr/local/lib -lSDL3 -Wl,-rpath,/usr/local/lib
 else ifeq ($(UNAME_S),Linux)
 	CC = gcc
-	LDFLAGS = `pkg-config --libs sdl3`
+	LDFLAGS = $(shell pkg-config --libs sdl3)
 endif
 
 ifeq ($(DEBUG), 1)
