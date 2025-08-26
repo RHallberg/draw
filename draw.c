@@ -47,9 +47,6 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event)
     else if(event->type == SDL_EVENT_KEY_DOWN && event->key.key == SDLK_C){
       clear = true;
     }
-    else if(event->type == SDL_EVENT_KEY_UP && event->key.key == SDLK_C){
-      clear = false;
-    }
     else if(event->type == SDL_EVENT_MOUSE_BUTTON_DOWN && event->button.button == 1 && event->button.down){
       draw = true;
     }
@@ -72,6 +69,7 @@ SDL_AppResult SDL_AppIterate(void *appstate)
     SDL_SetRenderTarget(renderer, canvas);
     if(clear){
       SDL_RenderClear(renderer);
+      clear = false;
     }
     if(draw){
       SDL_SetRenderDrawColor(renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
