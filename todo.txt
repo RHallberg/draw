@@ -1,6 +1,0 @@
-1. Implement a linked list with elements that contain 2 points.
-2. Add these two points as an element to the list while drawing.
-3. Implement a ring buffer with a size of n. Each element of the ring buffer is the start of a linked list.
-4. Whenever the mouse is released, increment the ring buffer index
-5. Add to the linked list at the index of the ring buffer when drawing.
-6. When U is pressed, draw a white line for each two points in the elements of the list in the ring buffer (at i-1). Remove and free the memory of each element in the list as it is traversed. Decrement the ring buffer index.

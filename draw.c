@@ -28,6 +28,7 @@ Point mpos = {0, 0};
 Point prevmpos = {0, 0};
 bool draw = false;
 bool clear = false;
+bool undo = false;
 
 ListElem* create_node(Point p1, Point p2);
 
@@ -73,11 +74,15 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event)
     else if(event->type == SDL_EVENT_KEY_DOWN && event->key.key == SDLK_C){
       clear = true;
     }
+    else if(event->type == SDL_EVENT_KEY_DOWN && event->key.key == SDLK_U){
+      undo = true;
+    }
     else if(event->type == SDL_EVENT_MOUSE_BUTTON_DOWN && event->button.button == 1 && event->button.down){
       draw = true;
     }
     else if(event->type == SDL_EVENT_MOUSE_BUTTON_UP && event->button.button == 1 && !event->button.down){
       draw = false;
+      incr_iundo();
     }
     else if(event->type == SDL_EVENT_MOUSE_MOTION){
       prevmpos.x = mpos.x;
@@ -101,6 +106,21 @@ SDL_AppResult SDL_AppIterate(void *appstate)
       SDL_SetRenderDrawColor(renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
       SDL_RenderLine(renderer, prevmpos.x, prevmpos.y, mpos.x, mpos.y);
       add_node(prevmpos, mpos);
+    }
+    if(undo){
+      i_undo = (i_undo - 1 + S_UNDO) % S_UNDO;
+      if(undobuf[i_undo] != NULL){
+        ListElem *cur_elem = undobuf[i_undo];
+        while(cur_elem != NULL && cur_elem->next != NULL){
+          ListElem *freeme = cur_elem;
+          cur_elem = cur_elem->next;
+          SDL_SetRenderDrawColor(renderer, 255, 255, 255, SDL_ALPHA_OPAQUE);
+          SDL_RenderLine(renderer, freeme->p1.x, freeme->p1.y, freeme->p2.x, freeme->p2.y);
+          free(freeme);
+        }
+        undobuf[i_undo] = NULL;
+      }
+      undo = false;
     }
     SDL_SetRenderTarget(renderer, NULL);
     SDL_SetRenderDrawColor(renderer, 255, 255, 255, SDL_ALPHA_OPAQUE);
@@ -141,13 +161,6 @@ ListElem* create_node(Point p1, Point p2)
 void incr_iundo(void)
 {
   i_undo = (i_undo + 1) % S_UNDO;
-  if(undobuf[i_undo] != NULL){
-    free_undo(i_undo);
-  }
-}
-void decr_iundo(void)
-{
-  i_undo = (i_undo - 1) % S_UNDO;
   if(undobuf[i_undo] != NULL){
     free_undo(i_undo);
   }

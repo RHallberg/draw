@@ -13,7 +13,7 @@ else ifeq ($(UNAME_S),Linux)
 endif
 
 ifeq ($(DEBUG), 1)
-    CFLAGS += -g -O0
+    CFLAGS += -g
 endif
 
 all: $(TARGET)
