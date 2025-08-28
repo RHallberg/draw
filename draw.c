@@ -3,6 +3,7 @@
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
 
+// Amount of actions that are undoable
 #define S_UNDO 10
 
 static SDL_Window *window = NULL;
