@@ -174,4 +174,5 @@ void free_undo(int i)
     cur_elem = cur_elem->next;
     free(freeme);
   }
+  undobuf[i] = NULL;
 }
