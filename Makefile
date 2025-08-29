@@ -1,7 +1,4 @@
 CFLAGS = -Wall
-SRCS = draw.c
-
-TARGET = draw
 UNAME_S := $(shell uname -s)
 
 ifeq ($(UNAME_S),Darwin)
@@ -16,10 +13,18 @@ ifeq ($(DEBUG), 1)
     CFLAGS += -g
 endif
 
-all: $(TARGET)
+all: draw
+
+draw: draw.o
+	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
+	rm -f draw.o
+
+draw.o: draw.c
+	$(CC) $(CFLAGS) -c $< -o $@
+
+clean:
+	rm -f draw
 
 debug:
 	$(MAKE) DEBUG=1
 
-$(TARGET): $(SRCS)
-	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
