@@ -24,6 +24,7 @@ typedef struct Color {
 } Color;
 const Color COLOR_WHITE = {255, 255, 255, SDL_ALPHA_OPAQUE};
 const Color COLOR_BLACK = {0, 0, 0, SDL_ALPHA_OPAQUE};
+Color current_color = {COLOR_BLACK.r, COLOR_BLACK.g, COLOR_BLACK.b, COLOR_BLACK.a};
 
 typedef struct ListElem {
   Point p1;
@@ -98,6 +99,27 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event)
     else if(event->type == SDL_EVENT_KEY_DOWN && event->key.key == SDLK_MINUS){
       if(pen_size > 1) pen_size -= 1;
     }
+    else if(event->type == SDL_EVENT_KEY_DOWN && event->key.key == SDLK_R){
+      if (event->key.mod & SDL_KMOD_SHIFT) {
+        if(current_color.r >= 10) current_color.r -= 10;
+      } else {
+        if(current_color.r <= 245) current_color.r += 10;
+      }
+    }
+    else if(event->type == SDL_EVENT_KEY_DOWN && event->key.key == SDLK_G){
+      if (event->key.mod & SDL_KMOD_SHIFT) {
+        if(current_color.g >= 10) current_color.g -= 10;
+      } else {
+        if(current_color.g <= 245)current_color.g += 10;
+      }
+    }
+    else if(event->type == SDL_EVENT_KEY_DOWN && event->key.key == SDLK_B){
+      if (event->key.mod & SDL_KMOD_SHIFT) {
+        if(current_color.b >= 10)current_color.b -= 10;
+      } else {
+        if(current_color.b <= 245) current_color.b += 10;
+      }
+    }
     else if(event->type == SDL_EVENT_MOUSE_BUTTON_DOWN && event->button.button == 1 && event->button.down){
       draw = true;
     }
@@ -124,7 +146,7 @@ SDL_AppResult SDL_AppIterate(void *appstate)
       clear = false;
     }
     if(draw){
-      draw_line(prevmpos, mpos, pen_size, COLOR_BLACK);
+      draw_line(prevmpos, mpos, pen_size, current_color);
       add_node(prevmpos, mpos, pen_size);
     }
     if(undo){
