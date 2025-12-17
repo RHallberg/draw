@@ -1,3 +1,4 @@
+#include "SDL3/SDL_keycode.h"
 #define SDL_MAIN_USE_CALLBACKS 1
 #include <stdlib.h>
 #include <SDL3/SDL.h>
@@ -15,9 +16,19 @@ typedef struct {
     int y;
 } Point;
 
+typedef struct Color {
+  Uint8 r;
+  Uint8 g;
+  Uint8 b;
+  Uint8 a;
+} Color;
+const Color COLOR_WHITE = {255, 255, 255, SDL_ALPHA_OPAQUE};
+const Color COLOR_BLACK = {0, 0, 0, SDL_ALPHA_OPAQUE};
+
 typedef struct ListElem {
   Point p1;
   Point p2;
+  int pen_size;
   struct ListElem *next;
 } ListElem;
 
@@ -27,17 +38,20 @@ ListElem *undobuf[S_UNDO];
 
 Point mpos = {0, 0};
 Point prevmpos = {0, 0};
+int pen_size = 1;
 bool draw = false;
 bool clear = false;
 bool undo = false;
 
-ListElem* create_node(Point p1, Point p2);
+ListElem* create_node(Point p1, Point p2, int psize);
 
-void add_node(Point p1, Point p2);
+void add_node(Point p1, Point p2, int psize);
 
 void incr_iundo(void);
 void decr_iundo(void);
 void free_undo(int i);
+
+void draw_line(Point p1, Point p2, int psize, Color color);
 
 SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[])
 {
@@ -78,6 +92,12 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event)
     else if(event->type == SDL_EVENT_KEY_DOWN && event->key.key == SDLK_U){
       undo = true;
     }
+    else if(event->type == SDL_EVENT_KEY_DOWN && event->key.key == SDLK_PLUS){
+      pen_size += 1;
+    }
+    else if(event->type == SDL_EVENT_KEY_DOWN && event->key.key == SDLK_MINUS){
+      if(pen_size > 1) pen_size -= 1;
+    }
     else if(event->type == SDL_EVENT_MOUSE_BUTTON_DOWN && event->button.button == 1 && event->button.down){
       draw = true;
     }
@@ -104,9 +124,8 @@ SDL_AppResult SDL_AppIterate(void *appstate)
       clear = false;
     }
     if(draw){
-      SDL_SetRenderDrawColor(renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
-      SDL_RenderLine(renderer, prevmpos.x, prevmpos.y, mpos.x, mpos.y);
-      add_node(prevmpos, mpos);
+      draw_line(prevmpos, mpos, pen_size, COLOR_BLACK);
+      add_node(prevmpos, mpos, pen_size);
     }
     if(undo){
       i_undo = (i_undo - 1 + S_UNDO) % S_UNDO;
@@ -115,8 +134,7 @@ SDL_AppResult SDL_AppIterate(void *appstate)
         while(cur_elem != NULL && cur_elem->next != NULL){
           ListElem *freeme = cur_elem;
           cur_elem = cur_elem->next;
-          SDL_SetRenderDrawColor(renderer, 255, 255, 255, SDL_ALPHA_OPAQUE);
-          SDL_RenderLine(renderer, freeme->p1.x, freeme->p1.y, freeme->p2.x, freeme->p2.y);
+          draw_line(freeme->p1, freeme->p2, freeme->pen_size, COLOR_WHITE);
           free(freeme);
         }
         undobuf[i_undo] = NULL;
@@ -132,14 +150,29 @@ SDL_AppResult SDL_AppIterate(void *appstate)
     return SDL_APP_CONTINUE;
 }
 
+void draw_line(Point p1, Point p2, int psize, Color color)
+{
+    SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, color.a);
+    for (int i = -psize/2; i <= psize/2; i++) {
+        SDL_RenderLine(renderer,
+            p1.x, p1.y + i,
+            p2.x, p2.y + i
+        );
+        SDL_RenderLine(renderer,
+          p1.x + i, p1.y,
+          p2.x + i, p2.y
+        );
+    }
+}
+
 void SDL_AppQuit(void *appstate, SDL_AppResult result)
 {
 
 }
 
-void add_node(Point p1, Point p2)
+void add_node(Point p1, Point p2, int psize)
 {
-  ListElem *n = create_node(p1,p2);
+  ListElem *n = create_node(p1,p2,psize);
   if(undobuf[i_undo] == NULL){
     undobuf[i_undo] = n;
   }
@@ -150,11 +183,12 @@ void add_node(Point p1, Point p2)
   }
 }
 
-ListElem* create_node(Point p1, Point p2)
+ListElem* create_node(Point p1, Point p2, int psize)
 {
     ListElem *node = malloc(sizeof(ListElem));
     node->p1 = p1;
     node->p2 = p2;
+    node->pen_size = psize;
     node->next = NULL;
     return node;
 }
